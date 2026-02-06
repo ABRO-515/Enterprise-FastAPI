@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from prometheus_fastapi_instrumentator import Instrumentator
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.v1.routers import auth, health, users
+from app.api.v1.routers import auth_router as auth, health_router as health, user_router as users
 from app.core.config import settings
 from app.core.errors import register_error_handlers
 from app.core.logging import configure_logging
