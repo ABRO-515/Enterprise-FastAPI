@@ -1,17 +1,32 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
-
-class UserCreate(BaseModel):
-    name: str = Field(min_length=1, max_length=100)
-    email: str = Field(min_length=3, max_length=255)
+from app.schemas.auth import Role
 
 
 class UserRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: int
-    name: str
+    id: str
+    full_name: str
     email: str
+    role: Role
+    is_active: bool
     created_at: datetime
+
+
+class UserUpdate(BaseModel):
+    full_name: str | None = None
+    email: str | None = None
+    role: Role | None = None
+    is_active: bool | None = None
+
+
+class UserUpdateResponse(BaseModel):
+    message: str
+    user: UserRead
+
+
+class UserDeleteResponse(BaseModel):
+    message: str

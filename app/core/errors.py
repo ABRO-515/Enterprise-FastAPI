@@ -36,6 +36,12 @@ class UnauthorizedError(AppError):
     message = "Unauthorized"
 
 
+class ForbiddenError(AppError):
+    code = "forbidden"
+    status_code = 403
+    message = "Forbidden"
+
+
 def register_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(AppError)
     async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
