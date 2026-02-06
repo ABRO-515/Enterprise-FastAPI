@@ -159,4 +159,36 @@ class UserRepository:
         if user.email:
             await self.cache.delete(self._email_key(user.email))
 
-        # If you ever allow email change, you would also need to invalidate old email
+    async def update(self, user_id: str, updates: dict[str, Any]) -> User:
+        user = await self.get_by_id(user_id)
+        if not user:
+            return None  # or raise
+
+        # Check email uniqueness if email is being updated
+        if 'email' in updates:
+            existing = await self.get_by_email(updates['email'])
+            if existing and existing.id != user_id:
+                raise ValueError("Email already in use")
+
+        for key, value in updates.items():
+            if hasattr(user, key):
+                setattr(user, key, value)
+
+        await self.session.commit()
+        await self.session.refresh(user)
+        await self._invalidate_user_caches(user)
+
+        return user
+
+    async def list(self) -> list[User]:
+        result = await self.session.execute(select(User))
+        return result.scalars().all()
+
+    async def delete(self, user_id: str) -> bool:
+        user = await self.get_by_id(user_id)
+        if not user:
+            return False
+        await self.session.delete(user)
+        await self.session.commit()
+        await self._invalidate_user_caches(user)
+        return True
