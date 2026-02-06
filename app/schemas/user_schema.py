@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
 
-from app.schemas.auth import Role
+from app.schemas.auth_schema import Role
 
 
 class UserRead(BaseModel):

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from app.models.user import User
-from app.schemas.auth import AuthLogin, AuthRegister, Token, LoginResponse
+from app.schemas.auth_schema import AuthRegister, AuthLogin, Token, LoginResponse
 from app.services.auth_service import AuthService
 
 
