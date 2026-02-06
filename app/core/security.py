@@ -9,7 +9,7 @@ import jwt
 from app.core.config import settings
 from app.core.errors import UnauthorizedError
 from app.db.session import get_db_session
-from app.repositories.auth_user_repository import AuthUserRepository
+from app.repositories.user_repository import UserRepository
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -33,7 +33,7 @@ async def get_current_user(
 
     user_id = str(subject)
 
-    repository = AuthUserRepository(session)
+    repository = UserRepository(session)
     user = await repository.get_by_id(user_id)
     if not user or not user.is_active:
         raise UnauthorizedError(message="Invalid credentials")

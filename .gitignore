@@ -68,8 +68,6 @@ htmlcov/
 # Local databases
 *.sqlite3
 
-# Alembic migration artifacts (if kept generated)
-alembic/versions/
 
 # Generated lock files (can be reproduced)
 uv.lock

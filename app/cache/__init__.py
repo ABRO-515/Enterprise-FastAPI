@@ -1,7 +1,7 @@
 """Redis cache helper.
 
 Usage:
-    from app.cache import cache, get_redis
+    from app.cache import cache, CacheBackend, get_redis
 
     await cache.set("key", "value", ttl=60)
 """
@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-from typing import Any, Optional
+from typing import Any, Optional, Protocol
 
 from redis.asyncio import Redis, from_url
 
@@ -20,6 +20,12 @@ logger = logging.getLogger("app.cache")
 
 _redis: Optional[Redis] = None
 _lock = asyncio.Lock()
+
+
+class CacheBackend(Protocol):
+    async def set(self, key: str, value: Any, ttl: int | None = None) -> None: ...
+    async def get(self, key: str) -> Any | None: ...
+    async def delete(self, key: str) -> None: ...
 
 
 async def get_redis() -> Redis:
@@ -46,20 +52,30 @@ class Cache:
         self._get_client = client_provider
 
     async def set(self, key: str, value: Any, ttl: int | None = None) -> None:
-        client = await self._get_client()
-        payload = json.dumps(value, default=str)
-        await client.set(key, payload, ex=ttl)
+        try:
+            client = await self._get_client()
+            payload = json.dumps(value, default=str)
+            await client.set(key, payload, ex=ttl)
+        except Exception as e:
+            logger.warning(f"Cache set failed for key {key}: {e}")
 
     async def get(self, key: str) -> Any | None:
-        client = await self._get_client()
-        data = await client.get(key)
-        if data is None:
+        try:
+            client = await self._get_client()
+            data = await client.get(key)
+            if data is None:
+                return None
+            return json.loads(data)
+        except Exception as e:
+            logger.warning(f"Cache get failed for key {key}: {e}")
             return None
-        return json.loads(data)
 
     async def delete(self, key: str) -> None:
-        client = await self._get_client()
-        await client.delete(key)
+        try:
+            client = await self._get_client()
+            await client.delete(key)
+        except Exception as e:
+            logger.warning(f"Cache delete failed for key {key}: {e}")
 
     async def delete_pattern(self, pattern: str) -> None:
         client = await self._get_client()

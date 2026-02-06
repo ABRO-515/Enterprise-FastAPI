@@ -1,50 +1,162 @@
 from __future__ import annotations
 
-from typing import Any
-from sqlalchemy.inspection import inspect
+from typing import Any, Self
+from dataclasses import asdict, dataclass
+from contextlib import suppress
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.cache import cache
+from app.cache import cache, CacheBackend  # assume you have proper typing
 from app.models.user import User
 
 
+@dataclass(frozen=True, slots=True)
+class CachedUser:
+    """Flat, serializable version of user for cache"""
+    id: str
+    full_name: str
+    email: str
+    role: str          # or use enum value
+    # IMPORTANT: do NOT cache sensitive fields like hashed_password!
+    # created_at, updated_at, is_active, etc. — only what you really need
+
+    @classmethod
+    def from_orm(cls, user: User) -> Self:
+        return cls(
+            id=user.id,
+            full_name=user.full_name,
+            email=user.email,
+            role=user.role.value if hasattr(user.role, 'value') else user.role,
+        )
+
+    def to_user(self) -> User:
+        """Only used in rare cases — prefer passing CachedUser around when possible"""
+        return User(
+            id=self.id,
+            full_name=self.full_name,
+            email=self.email,
+            role=self.role,
+            # IMPORTANT: do NOT reconstruct hashed_password or other sensitive/internal fields
+        )
+
+
 class UserRepository:
-    def __init__(self, session: AsyncSession, cache_backend=cache) -> None:
+    """
+    Responsibilities:
+    - CRUD for users
+    - Read-through caching for hot paths (get by id, get by email)
+    - Proper cache invalidation on write
+    """
+
+    CACHE_TTL = 300          # move to config or env
+    CACHE_KEY_PREFIX = "user"
+
+    def __init__(self, session: AsyncSession, cache_backend: CacheBackend = cache):
         self.session = session
-        self._cache = cache_backend
+        self.cache = cache_backend
 
-    async def _cache_key(self, user_id: int) -> str:  # noqa: D401
-        return f"user:{user_id}"
+    def _user_key(self, user_id: str) -> str:
+        return f"{self.CACHE_KEY_PREFIX}:{user_id}"
 
-    def _to_dict(self, user: User) -> dict[str, Any]:  # noqa: D401
-        return {c.key: getattr(user, c.key) for c in inspect(user).mapper.column_attrs}
+    def _email_key(self, email: str) -> str:
+        return f"{self.CACHE_KEY_PREFIX}:email:{email.lower()}"
 
-    async def get_by_id(self, user_id: int) -> User | None:
-        # try cache first
-        cached = await self._cache.get(await self._cache_key(user_id))
+    async def get_by_id(self, user_id: str) -> User | None:
+        key = self._user_key(user_id)
+
+        # Cache hit
+        cached = await self.cache.get(key)
         if cached is not None:
-            return User(**cached)  # type: ignore[arg-type]
+            try:
+                return CachedUser(**cached).to_user()
+            except (TypeError, KeyError):
+                await self.cache.delete(key)   # corrupt cache → remove
+                # continue to DB
 
-        result = await self.session.execute(select(User).where(User.id == user_id))
+        # Cache miss → DB
+        result = await self.session.execute(
+            select(User).where(User.id == user_id)
+        )
         user = result.scalar_one_or_none()
+
         if user:
-            await self._cache.set(await self._cache_key(user.id), self._to_dict(user), ttl=300)
+            await self._cache_user(user)
+
         return user
 
     async def get_by_email(self, email: str) -> User | None:
-        result = await self.session.execute(select(User).where(User.email == email))
-        return result.scalar_one_or_none()
+        key = self._email_key(email)
 
-    async def list(self) -> list[User]:
-        result = await self.session.execute(select(User).order_by(User.id))
-        return list(result.scalars().all())
+        cached = await self.cache.get(key)
+        if cached is not None:
+            try:
+                return CachedUser(**cached).to_user()
+            except (TypeError, KeyError):
+                await self.cache.delete(key)
 
-    async def create(self, name: str, email: str) -> User:
-        user = User(name=name, email=email)
+        result = await self.session.execute(
+            select(User).where(User.email == email)
+        )
+        user = result.scalar_one_or_none()
+
+        if user:
+            await self._cache_user(user)
+            # Also cache by email
+            await self.cache.set(key, asdict(CachedUser.from_orm(user)), ttl=self.CACHE_TTL)
+
+        return user
+
+    async def _cache_user(self, user: User) -> None:
+        """Central place to cache a user (used by both get_by_id and get_by_email)"""
+        if not user.id:
+            return
+
+        cu = CachedUser.from_orm(user)
+        data = asdict(cu)
+
+        await self.cache.set(
+            self._user_key(user.id),
+            data,
+            ttl=self.CACHE_TTL
+        )
+
+        # Also cache by email (write-through style for email lookups)
+        if user.email:
+            await self.cache.set(
+                self._email_key(user.email),
+                data,
+                ttl=self.CACHE_TTL
+            )
+
+    async def create(
+        self,
+        full_name: str,
+        email: str,
+        hashed_password: str,
+        role: User.Role = User.Role.user,
+    ) -> User:
+        user = User(
+            full_name=full_name,
+            email=email.lower(),           # normalize early
+            hashed_password=hashed_password,
+            role=role,
+        )
+
         self.session.add(user)
         await self.session.commit()
         await self.session.refresh(user)
-        # Invalidate caches
-        await self._cache.delete_pattern("user:*")
+
+        await self._invalidate_user_caches(user)
+
         return user
+
+    async def _invalidate_user_caches(self, user: User) -> None:
+        """Called after every write operation"""
+        if user.id:
+            await self.cache.delete(self._user_key(user.id))
+
+        if user.email:
+            await self.cache.delete(self._email_key(user.email))
+
+        # If you ever allow email change, you would also need to invalidate old email
