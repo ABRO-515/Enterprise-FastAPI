@@ -9,12 +9,18 @@ from app.core.logging import configure_logging
 from app.db.session import init_db
 from app.middleware.request_id import RequestIdMiddleware
 
+from app.core.rate_limiter import RateLimiter
+from app.middleware.rate_limit import RateLimitMiddleware
+
 
 def create_app() -> FastAPI:
     configure_logging(settings)
 
     app = FastAPI(title=settings.app_name)
     app.add_middleware(RequestIdMiddleware)
+
+    rate_limiter = RateLimiter(settings.rate_limit_max, settings.rate_limit_window_seconds)
+    app.add_middleware(RateLimitMiddleware, rate_limiter=rate_limiter, exempt_routes=settings.rate_limit_exempt_routes)
 
     # CORS
     app.add_middleware(

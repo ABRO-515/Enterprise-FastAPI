@@ -30,6 +30,9 @@ class Settings(BaseSettings):
     redis_cluster_nodes: str | None = None  # comma-separated host:port
     redis_password: str | None = None
     rabbitmq_url: str = "amqp://guest:guest@localhost:5672/"
+    rate_limit_max: int = 100
+    rate_limit_window_seconds: int = 60
+    rate_limit_exempt_routes: list[str] = ["/api/v1/health", "/metrics"]
     metrics_path: str = "/metrics"
 
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=False, extra="ignore")
