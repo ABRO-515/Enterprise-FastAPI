@@ -11,6 +11,7 @@ edge/api -> mediators/usecases -> services -> repositories -> models -> infrastr
 - Centralized config, error handling, metrics
 - Alembic migrations
 - Pytest + httpx tests
+- Sliding window rate limiting (100 requests per 60s window, configurable via env)
 
 ## Project structure
 ```
@@ -55,6 +56,18 @@ docker-compose.yml
 Dockerfile
 .dockerignore
 ```
+
+## Rate Limiting
+
+The application enforces sliding window rate limiting to prevent abuse.
+
+- **Algorithm**: Sliding window per client IP address.
+- **Limits**: Configurable via environment variables:
+  - `RATE_LIMIT_MAX`: Maximum requests per window (default: 100)
+  - `RATE_LIMIT_WINDOW_SECONDS`: Window duration in seconds (default: 60)
+- **Exemptions**: Health checks (`/api/v1/health`) and metrics (`/metrics`) are exempt.
+- **Behavior**: Returns HTTP 429 with `Retry-After` header and JSON error on limit exceeded.
+- **Storage**: In-memory for simplicity; extensible to Redis for distributed setups.
 
 ## Setup
 1. Create a virtual environment and install dependencies:
