@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     environment: str = "local"
     log_level: str = "INFO"
     log_json: bool = True
+    log_color: bool = False
     api_prefix: str = "/api/v1"
 
     jwt_secret: str = "change-me"

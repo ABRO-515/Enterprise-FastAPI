@@ -26,13 +26,17 @@ class JsonFormatter(logging.Formatter):
 
 
 def configure_logging(settings: Settings) -> None:
-    handler = logging.StreamHandler()
     if settings.log_json:
+        handler: logging.Handler = logging.StreamHandler()
         handler.setFormatter(JsonFormatter())
+    elif settings.log_color:
+        from rich.logging import RichHandler
+
+        handler = RichHandler(rich_tracebacks=True)
+        handler.setFormatter(logging.Formatter("%(message)s"))
     else:
-        handler.setFormatter(
-            logging.Formatter("%(asctime)s %(levelname)s %(name)s - %(message)s")
-        )
+        handler = logging.StreamHandler()
+        handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(name)s - %(message)s"))
 
     root_logger = logging.getLogger()
     root_logger.setLevel(settings.log_level.upper())
