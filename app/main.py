@@ -12,6 +12,9 @@ from app.middleware.request_id import RequestIdMiddleware
 from app.core.rate_limiter import RateLimiter
 from app.middleware.rate_limit import RateLimitMiddleware
 
+# WebSocket support
+from app.ws import ws_manager
+
 
 def create_app() -> FastAPI:
     configure_logging(settings)
@@ -31,9 +34,13 @@ def create_app() -> FastAPI:
         allow_credentials=settings.cors_allow_credentials,
     )
 
+    # API routes
     app.include_router(health.router, prefix=settings.api_prefix, tags=["health"])
     app.include_router(auth.router, prefix=settings.api_prefix)
     app.include_router(users.router, prefix=settings.api_prefix)
+
+    # WebSocket routes
+    app.include_router(ws_manager.get_router())
 
     register_error_handlers(app)
 
@@ -41,9 +48,15 @@ def create_app() -> FastAPI:
 
     @app.on_event("startup")
     async def on_startup() -> None:
-        
         if settings.create_tables_on_startup:
             await init_db()
+        # Start WebSocket manager
+        await ws_manager.start()
+
+    @app.on_event("shutdown")
+    async def on_shutdown() -> None:
+        # Stop WebSocket manager
+        await ws_manager.stop()
 
     return app
 
