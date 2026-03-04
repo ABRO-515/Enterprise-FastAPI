@@ -14,6 +14,7 @@ from app.middleware.rate_limit import RateLimitMiddleware
 
 # WebSocket support
 from app.ws import ws_manager
+from app.ws.docs_ws import router as ws_docs_router
 
 
 def create_app() -> FastAPI:
@@ -41,6 +42,9 @@ def create_app() -> FastAPI:
 
     # WebSocket routes
     app.include_router(ws_manager.get_router())
+
+    # WebSocket documentation
+    app.include_router(ws_docs_router, prefix="/ws-docs")
 
     register_error_handlers(app)
 
