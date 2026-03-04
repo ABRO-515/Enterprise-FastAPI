@@ -5,8 +5,8 @@ class Settings(BaseSettings):
     app_name: str = "FastAPI Boilerplate"
     environment: str = "local"
     log_level: str = "INFO"
-    log_json: bool = True
-    log_color: bool = False
+    log_json: bool = False
+    log_color: bool = True
     api_prefix: str = "/api/v1"
 
     jwt_secret: str = "change-me"
@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     # Development convenience: autogenerate & apply Alembic migrations on startup
     auto_migrate: bool = False
 
-    redis_url: str = "redis://localhost:6379/0"
+    redis_url: str = "redis://localhost:6381/0"
     redis_cluster_nodes: str | None = None  # comma-separated host:port
     redis_password: str | None = None
     rabbitmq_url: str = "amqp://guest:guest@localhost:5672/"
