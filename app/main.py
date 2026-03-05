@@ -40,6 +40,13 @@ def create_app() -> FastAPI:
     app.include_router(auth.router, prefix=settings.api_prefix)
     app.include_router(users.router, prefix=settings.api_prefix)
 
+    @app.on_event("startup")
+    async def on_startup() -> None:
+        if settings.create_tables_on_startup:
+            await init_db()
+        # Start WebSocket manager
+        await ws_manager.start()
+
     # WebSocket routes
     app.include_router(ws_manager.get_router())
 
@@ -49,13 +56,6 @@ def create_app() -> FastAPI:
     register_error_handlers(app)
 
     Instrumentator().instrument(app).expose(app, endpoint=settings.metrics_path)
-
-    @app.on_event("startup")
-    async def on_startup() -> None:
-        if settings.create_tables_on_startup:
-            await init_db()
-        # Start WebSocket manager
-        await ws_manager.start()
 
     @app.on_event("shutdown")
     async def on_shutdown() -> None:

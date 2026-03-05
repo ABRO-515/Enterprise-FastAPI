@@ -154,7 +154,7 @@ class ConnectedResponse(BaseModel):
     role: str
     status: UserStatus
     connection_id: str
-    timestamp: datetime = Field(default_factory=lambda: datetime.utcnow())
+    timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
 
 
 class SubscribedResponse(BaseModel):
@@ -180,7 +180,7 @@ class UserResponse(BaseModel):
     email: str
     role: str
     is_active: bool
-    created_at: datetime
+    created_at: str
 
 
 class UserUpdatedResponse(BaseModel):
@@ -188,7 +188,7 @@ class UserUpdatedResponse(BaseModel):
 
     user_id: str
     updates: Dict[str, Any]
-    updated_at: datetime = Field(default_factory=lambda: datetime.utcnow())
+    updated_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
 
 
 class UserDeletedResponse(BaseModel):
@@ -215,7 +215,7 @@ class MessageReceiveResponse(BaseModel):
     message: str
     message_type: str
     conversation_id: Optional[str] = None
-    timestamp: datetime = Field(default_factory=lambda: datetime.utcnow())
+    timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
     read: bool = False
 
 
@@ -225,7 +225,7 @@ class MessageSentResponse(BaseModel):
     message_id: str
     recipient_id: str
     status: str = "sent"
-    timestamp: datetime = Field(default_factory=lambda: datetime.utcnow())
+    timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
 
 
 class TypingStartedResponse(BaseModel):
@@ -252,7 +252,7 @@ class NotificationResponse(BaseModel):
     message: str
     data: Optional[Dict[str, Any]] = None
     read: bool = False
-    created_at: datetime = Field(default_factory=lambda: datetime.utcnow())
+    created_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
 
 
 class NotificationMarkedReadResponse(BaseModel):
@@ -281,7 +281,7 @@ class ErrorResponse(BaseModel):
 class PongResponse(BaseModel):
     """Pong/heartbeat response."""
 
-    timestamp: datetime = Field(default_factory=lambda: datetime.utcnow())
+    timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
 
 
 # =============================================================================
@@ -319,14 +319,14 @@ class RedisBroadcastMessage(BaseModel):
     room: Optional[str] = None  # Target room, None for broadcast
     user_id: Optional[str] = None  # Target user, None for broadcast
     exclude_connections: Optional[List[str]] = None  # Connection IDs to exclude
-    timestamp: datetime = Field(default_factory=lambda: datetime.utcnow())
+    timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
 
 
 class RedisUserMessage(BaseModel):
-    """Message format for user-specific Redis pub/sub."""
+    """Message format for Redis user-specific messages."""
 
     user_id: str
     event: str
     data: Dict[str, Any]
     exclude_connections: Optional[List[str]] = None
-    timestamp: datetime = Field(default_factory=lambda: datetime.utcnow())
+    timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())

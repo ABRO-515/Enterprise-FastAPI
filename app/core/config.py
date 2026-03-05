@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     log_color: bool = True
     api_prefix: str = "/api/v1"
 
-    jwt_secret: str = "change-me"
+    jwt_secret: str = "gzeHorMLGHtAzgCrRwimHwnwp2M2exsBW5i2zCfQ02tZ6IsBXH_mYWiNoViT44S3lz-7ZDXQAWEUMRNHlJDKbg"
     jwt_algorithm: str = "HS256"
     jwt_access_token_expires_minutes: int = 30
 

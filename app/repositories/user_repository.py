@@ -18,6 +18,9 @@ class CachedUser:
     full_name: str
     email: str
     role: str          # or use enum value
+    is_active: bool
+    created_at: str
+
     # IMPORTANT: do NOT cache sensitive fields like hashed_password!
     # created_at, updated_at, is_active, etc. — only what you really need
 
@@ -28,6 +31,8 @@ class CachedUser:
             full_name=user.full_name,
             email=user.email,
             role=user.role.value if hasattr(user.role, 'value') else user.role,
+            is_active=bool(user.is_active),
+            created_at=user.created_at.isoformat() if getattr(user, "created_at", None) else "",
         )
 
     def to_user(self) -> User:
@@ -37,6 +42,7 @@ class CachedUser:
             full_name=self.full_name,
             email=self.email,
             role=self.role,
+            is_active=self.is_active,
             # IMPORTANT: do NOT reconstruct hashed_password or other sensitive/internal fields
         )
 

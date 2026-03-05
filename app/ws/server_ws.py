@@ -727,7 +727,7 @@ class WebSocketRouteHandler:
 
 
 def setup_websocket_routes(
-    manager: ConnectionManager,
+    manager: Optional[ConnectionManager],
 ) -> APIRouter:
     """
     Create WebSocket router with all endpoints.
@@ -743,7 +743,15 @@ def setup_websocket_routes(
     Returns:
         APIRouter with WebSocket routes.
     """
-    router = APIRouter(tags=["websocket"])
+    router = APIRouter(prefix="/ws", tags=["websocket"])
+
+    async def _get_manager() -> ConnectionManager:
+        nonlocal manager
+        if manager is None:
+            redis = await get_redis()
+            manager = ConnectionManager(redis)
+            await manager.start_redis_subscriber()
+        return manager
 
     # Main WebSocket endpoint
     @router.websocket("/")
@@ -751,7 +759,7 @@ def setup_websocket_routes(
         websocket: WebSocket,
         session: AsyncSession = Depends(get_db_session),
     ) -> None:
-        handler = WebSocketRouteHandler(manager, endpoint="/ws")
+        handler = WebSocketRouteHandler(await _get_manager(), endpoint="/ws")
         await handler(websocket, session)
 
     # Chat WebSocket endpoint
@@ -760,7 +768,7 @@ def setup_websocket_routes(
         websocket: WebSocket,
         session: AsyncSession = Depends(get_db_session),
     ) -> None:
-        handler = WebSocketRouteHandler(manager, endpoint="/ws/chat")
+        handler = WebSocketRouteHandler(await _get_manager(), endpoint="/ws/chat")
         await handler(websocket, session)
 
     # Notifications WebSocket endpoint
@@ -769,7 +777,7 @@ def setup_websocket_routes(
         websocket: WebSocket,
         session: AsyncSession = Depends(get_db_session),
     ) -> None:
-        handler = WebSocketRouteHandler(manager, endpoint="/ws/notifications")
+        handler = WebSocketRouteHandler(await _get_manager(), endpoint="/ws/notifications")
         await handler(websocket, session)
 
     return router

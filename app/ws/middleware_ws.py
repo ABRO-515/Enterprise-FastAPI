@@ -133,6 +133,8 @@ async def websocket_auth_middleware(
     if not user:
         raise WebSocketAuthError("User not found", CloseCodes.UNAUTHORIZED)
 
+    logger.info(f"WebSocket auth for user {user_id}: is_active={user.is_active}, email={user.email}")
+
     if not user.is_active:
         raise WebSocketAuthError("Account is not active", CloseCodes.FORBIDDEN)
 
