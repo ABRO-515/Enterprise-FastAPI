@@ -566,6 +566,41 @@ class WebSocketHandlers:
             message = data.message
             message_type = data.message_type
 
+             # 🔥 =========================
+        # 🔥 =========================
+                # AI HANDLING
+                # 🔥 =========================
+            if recipient_id == "ai":
+                from app.services.ai_service import AIService
+
+                ai_service = AIService()
+
+                full_response = ""  # ✅ collect chunks
+
+                async for chunk in ai_service.stream_response(message):
+                    full_response += chunk  # ✅ build full response
+
+                    await websocket.send_json({
+                        "event": "message:stream",
+                        "data": {"chunk": chunk}
+                    })
+
+    # ✅ Send final complete AI message
+            ai_message = MessageReceiveResponse(
+                    message_id=str(uuid.uuid4()),
+                    sender_id="ai",
+                    recipient_id=sender_id,
+                    message=full_response,
+                    message_type="text",
+                )
+            await self._send_event(
+                websocket,
+                Events.MESSAGE_RECEIVE,
+                ai_message.model_dump(),
+            )
+
+            return  # ⚠️ IMPORTANT: stop normal flow
+
             # Generate message ID
             message_id = str(uuid.uuid4())
 

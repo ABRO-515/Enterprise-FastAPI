@@ -90,13 +90,16 @@ class MessageSendRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=5000)
     message_type: str = Field(default="text", pattern="^(text|image|file|system)$")
 
+
     @field_validator("recipient_id")
     @classmethod
     def validate_recipient_id(cls, v: str) -> str:
+        if v == "ai":   # ✅ allow AI special case
+            return v
         try:
             UUID(v)
         except ValueError:
-            raise ValueError("Invalid recipient ID format, must be UUID")
+            raise ValueError("Invalid recipient ID format, must be UUID or 'ai'")
         return v
 
     @field_validator("message")
