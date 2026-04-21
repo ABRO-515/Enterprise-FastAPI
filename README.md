@@ -158,7 +158,7 @@ WebSocket
 
 Chat → /ws/chat
 
-# 🧑‍💻 My Contributions
+# 🧑‍💻 My Contribution
 
      I extended this boilerplate into a full AI-powered real-time chat system:
 
