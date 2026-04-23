@@ -192,21 +192,15 @@ Chat → /ws/chat
     Frontend + backend integration
     Debugging production-level issues (tokens, auth, rate limits)
 
-# 🚀 Future Improvements
+# Contribution in RabbitMQ Concept
 
-    Chat history persistence (PostgreSQL)
-    Multi-user conversations
-    Redis-based scaling
-    Typing indicators
-    Message reactions
-    File/image support
-    Deployment (Docker + Cloud)
+  Integrated RabbitMQ Topic Exchange into the project for event-driven communication
+  Designed and implemented event publishing layer using clean architecture principles
 
-# ⭐ Final Note
+  Added structured event routing with patterns like:
 
-    This project evolved from a boilerplate into a mini ChatGPT-like system, combining:
-
-    Backend engineering
-    AI integration
-    Real-time communication
-    UI/UX design
+  chat.message.created
+  chat.ai.response.generated
+  chat.error.occurred
+  Built producer and consumer setup to validate real-time message flow
+  Established foundation for scalable microservices and AI event pipelines
