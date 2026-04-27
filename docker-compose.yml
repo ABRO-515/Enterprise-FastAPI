@@ -38,6 +38,8 @@ services:
   # 🚀 FASTAPI API SERVICE
   api:
     build: .
+    env_file:
+      - .env
     command: uv run uvicorn app.main:app --host 0.0.0.0 --port 8000
     ports:
       - "8000:8000"
@@ -49,7 +51,9 @@ services:
   # 🚀 WORKER SERVICE
   worker:
     build: .
-    command: uv run python -m app.workers.chat_worker
+    command: uv run python -m app.workers.chat_consumer
+    env_file:
+      - .env
     depends_on:
       - rabbitmq
       - redis

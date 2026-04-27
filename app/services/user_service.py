@@ -34,7 +34,6 @@ class UserService:
                 "updates": updates,
             },
         )
-
         return user
 
     async def delete_user(self, user_id: str) -> bool:

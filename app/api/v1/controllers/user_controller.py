@@ -2,7 +2,6 @@ from app.core.errors import ForbiddenError, NotFoundError
 from app.mediators.user_mediator import UserMediator
 from app.models.user import User
 from app.schemas.auth_schema import Role
-from app.message_broker import publish
 from app.schemas.user_schema import UserDeleteResponse, UserRead, UserUpdate, UserUpdateResponse
 
 
@@ -16,15 +15,7 @@ class UserController:
         updates = user_update.model_dump(exclude_unset=True)
         user = await self.mediator.update_user(user_id, updates)
 
-        # ✅ EVENT PUBLISH HERE
-
-        await publish(
-            routing_key="user.updated",
-            message={
-                "user_id": user_id,
-                "updated_fields": list(updates.keys())
-            }
-        )
+     
         return UserUpdateResponse(
             message="Successfully updated user details",
             user=UserRead.model_validate(user)
@@ -36,15 +27,6 @@ class UserController:
         success = await self.mediator.delete_user(user_id)
         if not success:
             raise NotFoundError(message="User not found")
-        
-         # ✅ EVENT PUBLISH HERE
-
-        await publish(
-            routing_key="user.deleted",
-            message={
-                "user_id": user_id
-            }
-        )
 
         return UserDeleteResponse(message="User deleted successfully")
 
