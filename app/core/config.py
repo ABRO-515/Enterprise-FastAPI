@@ -27,10 +27,10 @@ class Settings(BaseSettings):
     # Development convenience: autogenerate & apply Alembic migrations on startup
     auto_migrate: bool = False
 
-    redis_url: str = "redis://localhost:6381/0"
+    redis_url: str = "redis://redis:6379/0"
     redis_cluster_nodes: str | None = None  # comma-separated host:port
     redis_password: str | None = None
-    rabbitmq_url: str = "amqp://guest:guest@localhost:5672/"
+    rabbitmq_url: str = "amqp://admin:admin@rabbitmq:5672/"
     rate_limit_max: int = 100
     rate_limit_window_seconds: int = 60
     rate_limit_exempt_routes: list[str] = ["/api/v1/health", "/metrics"]

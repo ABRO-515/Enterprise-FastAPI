@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from prometheus_fastapi_instrumentator import Instrumentator
 from fastapi.middleware.cors import CORSMiddleware
+from app.message_broker import init_rabbit
 
 from app.api.v1.routers import auth_router as auth, health_router as health, user_router as users
 from app.core.config import settings
@@ -15,7 +16,7 @@ from app.middleware.rate_limit import RateLimitMiddleware
 # WebSocket support
 from app.ws import ws_manager
 from app.ws.docs_ws import router as ws_docs_router
-
+from app.message_broker import publish
 
 def create_app() -> FastAPI:
     configure_logging(settings)
@@ -44,7 +45,14 @@ def create_app() -> FastAPI:
     async def on_startup() -> None:
         if settings.create_tables_on_startup:
             await init_db()
+
+    # ✅ INIT RABBITMQ
+
+        await init_rabbit()
+        
+
         # Start WebSocket manager
+
         await ws_manager.start()
 
     # WebSocket routes
