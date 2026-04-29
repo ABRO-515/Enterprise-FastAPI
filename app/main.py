@@ -16,7 +16,6 @@ from app.middleware.rate_limit import RateLimitMiddleware
 # WebSocket support
 from app.ws import ws_manager
 from app.ws.docs_ws import router as ws_docs_router
-from app.message_broker import publish
 
 def create_app() -> FastAPI:
     configure_logging(settings)
