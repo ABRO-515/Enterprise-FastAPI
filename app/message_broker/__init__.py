@@ -1,3 +1,10 @@
+"""RabbitMQ helper using aio-pika.
+
+Provides:
+    - init_rabbit(): lazy connection/channel initialiser.
+    - publish(exchange, routing_key, message): publish persistent JSON message.
+    - consume(queue_name, handler): attach async consumer that processes JSON messages.
+"""
 from __future__ import annotations
 
 import asyncio
