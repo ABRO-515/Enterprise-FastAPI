@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 async def handle_message(data):
     logger.info(f"🔥 consumer received: {data}")
-
+  
 
 async def consume_events():
     await consume(
