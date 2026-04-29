@@ -14,6 +14,8 @@ class UserController:
             raise ForbiddenError(message="Unable to change")
         updates = user_update.model_dump(exclude_unset=True)
         user = await self.mediator.update_user(user_id, updates)
+
+     
         return UserUpdateResponse(
             message="Successfully updated user details",
             user=UserRead.model_validate(user)
@@ -25,6 +27,7 @@ class UserController:
         success = await self.mediator.delete_user(user_id)
         if not success:
             raise NotFoundError(message="User not found")
+
         return UserDeleteResponse(message="User deleted successfully")
 
     async def get_user(self, user_id: str) -> UserRead:

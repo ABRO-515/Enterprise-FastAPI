@@ -416,7 +416,7 @@ class ConnectionManager:
                     f"{REDIS_USER_CHANNEL_PREFIX}*",
                 )
 
-                logger.info("Redis pub/sub subscriber started")
+                logger.info("Redis pub/sub subscriber started ✅")
 
                 while not self._shutdown_event.is_set():
                     try:
@@ -814,13 +814,13 @@ class WebSocketManager:
         redis = await get_redis()
         self.connection_manager = ConnectionManager(redis)
         await self.connection_manager.start_redis_subscriber()
-        logger.info("WebSocket manager started")
+        logger.info("WebSocket manager started ✅")
 
     async def stop(self) -> None:
         """Shutdown WebSocket manager."""
         if self.connection_manager:
             await self.connection_manager.stop_redis_subscriber()
-        logger.info("WebSocket manager stopped")
+        logger.info("WebSocket manager stopped ⏸️")
 
     def get_router(self) -> APIRouter:
         """Get WebSocket router for app inclusion."""

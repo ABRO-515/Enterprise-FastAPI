@@ -9,7 +9,8 @@ import asyncio
 import json
 import logging
 
-from app.queue import consume, init_rabbit
+# ✅ CHANGE: use new broker
+from app.message_broker import consume, init_rabbit
 
 logger = logging.getLogger("app.email_sender")
 
@@ -21,7 +22,18 @@ async def handle_email(payload: dict[str, str]) -> None:  # pragma: no cover
 
 async def main() -> None:  # pragma: no cover
     await init_rabbit()
-    await consume("notification.events", handle_email)
+
+    # ✅ CHANGE: topic-based consume
+    await consume(
+        queue_name="notification-service",   # service-level queue (renamed cleanly)
+        routing_patterns=[
+            "user.updated",
+            "user.deleted",
+            "notification.email.*",   # future-ready
+        ],
+        handler=handle_email,
+    )
+
     # Keep running
     await asyncio.Future()
 
