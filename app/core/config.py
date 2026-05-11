@@ -87,6 +87,14 @@ class Settings(BaseSettings):
     embedding_dimensions: int = 3072  # Gemini embedding-001 returns 3072 dimensions
 
     # =========================
+    # FIRECRAWL
+    # =========================
+    firecrawl_api_key: str = ""
+    firecrawl_base_url: str = "https://api.firecrawl.dev"
+    firecrawl_timeout_seconds: float = 30.0
+
+
+    # =========================
     # CHUNKING / INGESTION
     # =========================
     chunk_size: int = 500
