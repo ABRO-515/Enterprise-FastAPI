@@ -29,6 +29,7 @@ dependencies = [
   "langchain-qdrant>=0.2",
   "qdrant-client>=1.9",
   "pymupdf>=1.24",
+  "numexpr>=2.9",
 ]
 
 [project.optional-dependencies]

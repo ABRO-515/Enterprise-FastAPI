@@ -22,6 +22,7 @@ class ChatRequest(BaseModel):
     temperature: float | None = Field(default=None, ge=0.0, le=2.0)
     max_tokens: int | None = Field(default=None, ge=1, le=8192)
     use_rag: bool = Field(default=False, description="Enable RAG retrieval from vector store")
+    use_tools: bool = Field(default=False, description="Enable tool calling (calculator, web search, document lookup)")
     top_k: int | None = Field(default=None, ge=1, le=20, description="Number of chunks to retrieve")
 
 
