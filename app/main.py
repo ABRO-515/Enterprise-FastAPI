@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.message_broker import init_rabbit
 
 from app.api.v1.routers import auth_router as auth, health_router as health, user_router as users
+from app.ai.routers import chat_router as ai_chat, ingest_router as ai_ingest
 from app.core.config import settings
 from app.core.errors import register_error_handlers
 from app.core.logging import configure_logging
@@ -39,6 +40,10 @@ def create_app() -> FastAPI:
     app.include_router(health.router, prefix=settings.api_prefix, tags=["health"])
     app.include_router(auth.router, prefix=settings.api_prefix)
     app.include_router(users.router, prefix=settings.api_prefix)
+
+    # AI routes
+    app.include_router(ai_chat.router, prefix=settings.api_prefix)
+    app.include_router(ai_ingest.router, prefix=settings.api_prefix)
 
     @app.on_event("startup")
     async def on_startup() -> None:

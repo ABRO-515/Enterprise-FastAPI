@@ -67,6 +67,35 @@ class Settings(BaseSettings):
     metrics_path: str = "/metrics"
 
     # =========================
+    # GEMINI (LLM)
+    # =========================
+    gemini_api_key: str = ""
+    gemini_chat_model: str = "gemini-2.5-flash"
+    gemini_temperature: float = 0.7
+    gemini_max_tokens: int = 2048
+
+    # =========================
+    # QDRANT (Vector DB)
+    # =========================
+    qdrant_url: str = "http://localhost:6333"
+    qdrant_collection: str = "pdf_chunks"
+
+    # =========================
+    # EMBEDDINGS
+    # =========================
+    embedding_model: str = "models/gemini-embedding-001"
+    embedding_dimensions: int = 3072  # Gemini embedding-001 returns 3072 dimensions
+
+    # =========================
+    # CHUNKING / INGESTION
+    # =========================
+    chunk_size: int = 500
+    chunk_overlap: int = 80
+    pdf_upload_dir: str = "./data/uploads"
+    max_upload_mb: int = 25
+    top_k: int = 5
+
+    # =========================
     # Pydantic config
     # =========================
     model_config = SettingsConfigDict(
